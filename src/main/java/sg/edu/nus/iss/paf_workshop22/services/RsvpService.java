@@ -31,10 +31,16 @@ public class RsvpService {
         return rsvpRepo.findById(id);
     }
 
+    // Get rsvp by Email
+    public Optional<Rsvp> findByEmail(String email){
+
+        return rsvpRepo.findByEmail(email);
+    }
+
     // Get rsvp by name
-    public List<Rsvp> findByName(String fullname){
+    public List<Rsvp> findByName(String name){
        
-        return rsvpRepo.findByName(fullname);
+        return rsvpRepo.findByName(name);
     }
 
     // add new rsvp or overwrite existing rsvp

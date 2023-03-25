@@ -12,6 +12,8 @@ public class RecordNotFoundException extends RuntimeException{
     private final String email;
 
     // Constructors
+
+    // ID not found
     public RecordNotFoundException(String table, Integer pk){
         super(String.format("Cannot find record in %s table with primary key %d",table,pk));
         tableName = table;
@@ -20,6 +22,7 @@ public class RecordNotFoundException extends RuntimeException{
         this.email = null;
     }
 
+    // Name not found
     public RecordNotFoundException(String table, String name){
         super(String.format("Cannot find record in %s table with name %s",table,name));
         tableName = table;
@@ -28,6 +31,7 @@ public class RecordNotFoundException extends RuntimeException{
         this.email = null;
     }
 
+    // Email not found
     public RecordNotFoundException(String table, String name, String email){
         super(String.format("Cannot find record in %s table with email %s",table,email));
         tableName = table;

@@ -25,9 +25,8 @@ public class RsvpRepository {
     private final String selectAllSQL = "select * from rsvp";
     private final String insertSQL = "insert into rsvp (fullname, email, phone, confirmation_date, comments) values (?, ?, ?, ?, ?)";
     private final String selectByIdSQL = "select * from rsvp where id = ?";
-    // private final String selectByNameSQL = "select * from rsvp where fullname
-    // like \'%?%\'"; // try this
-    private final String selectByNameSQL = "select * from rsvp where fullname like ?"; // try this
+    // private final String selectByNameSQL = "select * from rsvp where fullname like \' % ? % \' "; // dont do this !!
+    private final String selectByNameSQL = "select * from rsvp where fullname like ?";
     private final String selectByEmailSQL = "select * from rsvp where email = ?";
     private final String updateSQL = 
             "update rsvp set fullname = ?, email = ?, phone = ?, confirmation_date = ?, comments = ? where email = ?";
@@ -60,11 +59,8 @@ public class RsvpRepository {
 
         } catch (Exception ex) {
 
-            if (null == rsvp) {
-                return Optional.empty();
-            } else {
-                throw ex;
-            }
+            return Optional.empty();
+
         }
     }
 
@@ -97,25 +93,25 @@ public class RsvpRepository {
     }
 
     // Get all rsvp records that match the given name
-    public List<Rsvp> findByName(String fullname) {
+    public List<Rsvp> findByName(String name) {
 
         List<Rsvp> rsvpList = new ArrayList<>();
         rsvpList = jdbcTemplate.query(selectByNameSQL, new PreparedStatementSetter() {
 
             @Override
             public void setValues(PreparedStatement ps) throws SQLException {
-                ps.setString(1, "%" + fullname + "%");
+                ps.setString(1, "%" + name + "%");
             }
             
         }, BeanPropertyRowMapper.newInstance(Rsvp.class));
-        // rsvpList = jdbcTemplate.query(selectByNameSQL, BeanPropertyRowMapper.newInstance(Rsvp.class), fullname);
+
         return rsvpList;
 
     }
 
-    // add new rsvp or overwrite existing rsvp
-    // check email, if exist, overwrite the rsvp
+    // add new rsvp
     public Boolean save(Rsvp rsvp) {
+
         Integer result = jdbcTemplate.update(insertSQL, rsvp.getFullname(), rsvp.getEmail(), rsvp.getPhone(),
                 rsvp.getConfirmationDate(), rsvp.getComments());
 

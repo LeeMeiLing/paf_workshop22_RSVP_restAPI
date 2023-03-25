@@ -1,11 +1,13 @@
 package sg.edu.nus.iss.paf_workshop22.controllers;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import sg.edu.nus.iss.paf_workshop22.exception.RecordNotFoundException;
 import sg.edu.nus.iss.paf_workshop22.models.Rsvp;
 import sg.edu.nus.iss.paf_workshop22.services.RsvpService;
@@ -38,13 +41,11 @@ public class RsvpRestController {
     
     }
 
-
     // GET api/rsvp?q=name
     // return 404 with error object if rsvp not found
     @GetMapping("/rsvp")
-    public ResponseEntity<Object> getRsvpByName(@RequestParam String q){
+    public ResponseEntity<List<Rsvp>> getRsvpByName(@RequestParam(required = true) String q){
 
-        // List<Rsvp> rsvpList = rsvpRepo.findByName(name);
         List<Rsvp> rsvpList = rsvpSvc.findByName(q);
 
         if (rsvpList.isEmpty()){
@@ -53,20 +54,40 @@ public class RsvpRestController {
             return ResponseEntity.ok().body(rsvpList);
         }
     }
+    
+    // GET api/rsvp/{email}
+    // return 404 with error object if rsvp not found
+    @GetMapping("/rsvp/{email}")
+    public ResponseEntity<Rsvp> getRsvpByEmail(@PathVariable("email") String email){
 
+        Optional<Rsvp> rsvp = rsvpSvc.findByEmail(email);
+
+        if (rsvp.isEmpty()){
+            throw new RecordNotFoundException("rsvp",null,email);
+        }else{
+            return ResponseEntity.ok().body(rsvp.get());
+        }
+    }
 
     // POST /api/rsvp
     // Content-Type: application/x-www-form-urlencoded
     // return 201 if successful
     @PostMapping(path={"/rsvp"}, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<Boolean> addRsvp(Rsvp rsvp){
+    public ResponseEntity<Boolean> addRsvp(@Valid @ModelAttribute Rsvp rsvp, BindingResult binding){
+    // public ResponseEntity<Boolean> addRsvp(@Valid @RequestBody Rsvp rsvp, BindingResult binding){ // use this if content-type is json
 
-        Boolean saved = rsvpSvc.save(rsvp);
+        if(binding.hasErrors()){
 
-        if(saved){
-            return ResponseEntity.status(HttpStatus.CREATED).build();
+            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(false);
+              
         }else{
-            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).build();
+            Boolean saved = rsvpSvc.save(rsvp);
+
+            if(saved){
+                return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+            }else{
+                return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(saved);
+            }
         }
         
     }
@@ -74,8 +95,8 @@ public class RsvpRestController {
     // PUT /api/rsvp/fred@gmail.com
     // Content-Type: application/x-www-form-urlencoded
     // return 201 if successful, 404 if email not found
-    @PutMapping(path={"/rsvp/{email}"})
-    public ResponseEntity<Boolean> updateRsvp(@PathVariable String email, @ModelAttribute Rsvp rsvp){
+    @PutMapping(path={"/rsvp/{email}"}, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public ResponseEntity<Boolean> updateRsvp(@PathVariable String email, @ModelAttribute Rsvp rsvp){  // try w/o@ModelAtttribute, try @multivaluemap
 
             Boolean updated = rsvpSvc.update(email, rsvp);
             
